@@ -1,0 +1,662 @@
+   0  $accept : %entry% $end
+
+   1  prog : LBRA cmds RBRA
+
+   2  cmds : stat
+   3       | dec SEMICOL cmds
+   4       | stat SEMICOL cmds
+
+   5  stat : ECHO expr
+
+   6  dec : CONST IDENT typing expr
+   7      | FUN IDENT typing LBRA args RBRA expr
+   8      | FUN REC IDENT typing LBRA args RBRA expr
+
+   9  typing : TPRIM
+  10         | LPAR typings ARROW typing RPAR
+
+  11  typings : typing
+  12          | typing STAR typings
+
+  13  arg : IDENT COL typing
+
+  14  args : arg
+  15       | arg COMMA args
+
+  16  expr : TRUE
+  17       | FALSE
+  18       | NUM
+  19       | IDENT
+  20       | LPAR OPRIM exprs RPAR
+  21       | LBRA args RBRA expr
+  22       | LPAR expr exprs RPAR
+  23       | LPAR IF expr expr expr RPAR
+
+  24  exprs : expr
+  25        | expr exprs
+
+  26  %entry% : '\001' prog
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . prog  (26)
+
+	LBRA  shift 3
+	.  error
+
+	prog  goto 4
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	prog : LBRA . cmds RBRA  (1)
+
+	ECHO  shift 5
+	FUN  shift 6
+	CONST  shift 7
+	.  error
+
+	dec  goto 8
+	stat  goto 9
+	cmds  goto 10
+
+
+state 4
+	%entry% : '\001' prog .  (26)
+
+	.  reduce 26
+
+
+state 5
+	stat : ECHO . expr  (5)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 17
+
+
+state 6
+	dec : FUN . IDENT typing LBRA args RBRA expr  (7)
+	dec : FUN . REC IDENT typing LBRA args RBRA expr  (8)
+
+	REC  shift 18
+	IDENT  shift 19
+	.  error
+
+
+state 7
+	dec : CONST . IDENT typing expr  (6)
+
+	IDENT  shift 20
+	.  error
+
+
+state 8
+	cmds : dec . SEMICOL cmds  (3)
+
+	SEMICOL  shift 21
+	.  error
+
+
+state 9
+	cmds : stat .  (2)
+	cmds : stat . SEMICOL cmds  (4)
+
+	SEMICOL  shift 22
+	RBRA  reduce 2
+
+
+state 10
+	prog : LBRA cmds . RBRA  (1)
+
+	RBRA  shift 23
+	.  error
+
+
+state 11
+	expr : LPAR . OPRIM exprs RPAR  (20)
+	expr : LPAR . expr exprs RPAR  (22)
+	expr : LPAR . IF expr expr expr RPAR  (23)
+
+	OPRIM  shift 24
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	IF  shift 25
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 26
+
+
+state 12
+	expr : LBRA . args RBRA expr  (21)
+
+	IDENT  shift 27
+	.  error
+
+	arg  goto 28
+	args  goto 29
+
+
+state 13
+	expr : TRUE .  (16)
+
+	.  reduce 16
+
+
+state 14
+	expr : FALSE .  (17)
+
+	.  reduce 17
+
+
+state 15
+	expr : NUM .  (18)
+
+	.  reduce 18
+
+
+state 16
+	expr : IDENT .  (19)
+
+	.  reduce 19
+
+
+state 17
+	stat : ECHO expr .  (5)
+
+	.  reduce 5
+
+
+state 18
+	dec : FUN REC . IDENT typing LBRA args RBRA expr  (8)
+
+	IDENT  shift 30
+	.  error
+
+
+state 19
+	dec : FUN IDENT . typing LBRA args RBRA expr  (7)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 33
+
+
+state 20
+	dec : CONST IDENT . typing expr  (6)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 34
+
+
+state 21
+	cmds : dec SEMICOL . cmds  (3)
+
+	ECHO  shift 5
+	FUN  shift 6
+	CONST  shift 7
+	.  error
+
+	dec  goto 8
+	stat  goto 9
+	cmds  goto 35
+
+
+state 22
+	cmds : stat SEMICOL . cmds  (4)
+
+	ECHO  shift 5
+	FUN  shift 6
+	CONST  shift 7
+	.  error
+
+	dec  goto 8
+	stat  goto 9
+	cmds  goto 36
+
+
+state 23
+	prog : LBRA cmds RBRA .  (1)
+
+	.  reduce 1
+
+
+state 24
+	expr : LPAR OPRIM . exprs RPAR  (20)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 37
+	exprs  goto 38
+
+
+state 25
+	expr : LPAR IF . expr expr expr RPAR  (23)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 39
+
+
+state 26
+	expr : LPAR expr . exprs RPAR  (22)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 37
+	exprs  goto 40
+
+
+state 27
+	arg : IDENT . COL typing  (13)
+
+	COL  shift 41
+	.  error
+
+
+state 28
+	args : arg .  (14)
+	args : arg . COMMA args  (15)
+
+	COMMA  shift 42
+	RBRA  reduce 14
+
+
+state 29
+	expr : LBRA args . RBRA expr  (21)
+
+	RBRA  shift 43
+	.  error
+
+
+state 30
+	dec : FUN REC IDENT . typing LBRA args RBRA expr  (8)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 44
+
+
+state 31
+	typing : TPRIM .  (9)
+
+	.  reduce 9
+
+
+state 32
+	typing : LPAR . typings ARROW typing RPAR  (10)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 45
+	typings  goto 46
+
+
+state 33
+	dec : FUN IDENT typing . LBRA args RBRA expr  (7)
+
+	LBRA  shift 47
+	.  error
+
+
+state 34
+	dec : CONST IDENT typing . expr  (6)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 48
+
+
+state 35
+	cmds : dec SEMICOL cmds .  (3)
+
+	.  reduce 3
+
+
+state 36
+	cmds : stat SEMICOL cmds .  (4)
+
+	.  reduce 4
+
+
+state 37
+	exprs : expr .  (24)
+	exprs : expr . exprs  (25)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	RPAR  reduce 24
+
+	expr  goto 37
+	exprs  goto 49
+
+
+state 38
+	expr : LPAR OPRIM exprs . RPAR  (20)
+
+	RPAR  shift 50
+	.  error
+
+
+state 39
+	expr : LPAR IF expr . expr expr RPAR  (23)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 51
+
+
+state 40
+	expr : LPAR expr exprs . RPAR  (22)
+
+	RPAR  shift 52
+	.  error
+
+
+state 41
+	arg : IDENT COL . typing  (13)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 53
+
+
+state 42
+	args : arg COMMA . args  (15)
+
+	IDENT  shift 27
+	.  error
+
+	arg  goto 28
+	args  goto 54
+
+
+state 43
+	expr : LBRA args RBRA . expr  (21)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 55
+
+
+state 44
+	dec : FUN REC IDENT typing . LBRA args RBRA expr  (8)
+
+	LBRA  shift 56
+	.  error
+
+
+state 45
+	typings : typing .  (11)
+	typings : typing . STAR typings  (12)
+
+	STAR  shift 57
+	ARROW  reduce 11
+
+
+state 46
+	typing : LPAR typings . ARROW typing RPAR  (10)
+
+	ARROW  shift 58
+	.  error
+
+
+state 47
+	dec : FUN IDENT typing LBRA . args RBRA expr  (7)
+
+	IDENT  shift 27
+	.  error
+
+	arg  goto 28
+	args  goto 59
+
+
+state 48
+	dec : CONST IDENT typing expr .  (6)
+
+	.  reduce 6
+
+
+state 49
+	exprs : expr exprs .  (25)
+
+	.  reduce 25
+
+
+state 50
+	expr : LPAR OPRIM exprs RPAR .  (20)
+
+	.  reduce 20
+
+
+state 51
+	expr : LPAR IF expr expr . expr RPAR  (23)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 60
+
+
+state 52
+	expr : LPAR expr exprs RPAR .  (22)
+
+	.  reduce 22
+
+
+state 53
+	arg : IDENT COL typing .  (13)
+
+	.  reduce 13
+
+
+state 54
+	args : arg COMMA args .  (15)
+
+	.  reduce 15
+
+
+state 55
+	expr : LBRA args RBRA expr .  (21)
+
+	.  reduce 21
+
+
+state 56
+	dec : FUN REC IDENT typing LBRA . args RBRA expr  (8)
+
+	IDENT  shift 27
+	.  error
+
+	arg  goto 28
+	args  goto 61
+
+
+state 57
+	typings : typing STAR . typings  (12)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 45
+	typings  goto 62
+
+
+state 58
+	typing : LPAR typings ARROW . typing RPAR  (10)
+
+	TPRIM  shift 31
+	LPAR  shift 32
+	.  error
+
+	typing  goto 63
+
+
+state 59
+	dec : FUN IDENT typing LBRA args . RBRA expr  (7)
+
+	RBRA  shift 64
+	.  error
+
+
+state 60
+	expr : LPAR IF expr expr expr . RPAR  (23)
+
+	RPAR  shift 65
+	.  error
+
+
+state 61
+	dec : FUN REC IDENT typing LBRA args . RBRA expr  (8)
+
+	RBRA  shift 66
+	.  error
+
+
+state 62
+	typings : typing STAR typings .  (12)
+
+	.  reduce 12
+
+
+state 63
+	typing : LPAR typings ARROW typing . RPAR  (10)
+
+	RPAR  shift 67
+	.  error
+
+
+state 64
+	dec : FUN IDENT typing LBRA args RBRA . expr  (7)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 68
+
+
+state 65
+	expr : LPAR IF expr expr expr RPAR .  (23)
+
+	.  reduce 23
+
+
+state 66
+	dec : FUN REC IDENT typing LBRA args RBRA . expr  (8)
+
+	LPAR  shift 11
+	LBRA  shift 12
+	TRUE  shift 13
+	FALSE  shift 14
+	NUM  shift 15
+	IDENT  shift 16
+	.  error
+
+	expr  goto 69
+
+
+state 67
+	typing : LPAR typings ARROW typing RPAR .  (10)
+
+	.  reduce 10
+
+
+state 68
+	dec : FUN IDENT typing LBRA args RBRA expr .  (7)
+
+	.  reduce 7
+
+
+state 69
+	dec : FUN REC IDENT typing LBRA args RBRA expr .  (8)
+
+	.  reduce 8
+
+
+25 terminals, 12 nonterminals
+27 grammar rules, 70 states

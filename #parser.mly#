@@ -1,0 +1,24 @@
+%{open Ast%}
+%token CONST, FUN, REC, ECHO, PLUS, MUL, LPAR, RPAR, EOL, PRINT, REM, LET, EQ;
+%token <int> INTEGER;
+%token<string> IDENT;
+%start calc
+%type <Ast.expr> calc
+%type <Ast.expr> expr
+%type <Ast.expr> term
+%type <Ast.expr> factor
+%%
+
+calc : expr EOL {$1}
+expr : expr PLUS expr {Add($1,$3)}
+	 | term {$1}
+	 | PRINT expr {Print($2)};
+	 
+term : term MUL term {Mul($1,$3)}
+	 | factor{$1};
+
+factor : INTEGER {Int($1)}
+	   |LPAR expr RPAR {$2};
+
+cmd : LET IDENT EQ expr {Let($2,$4)}
+
