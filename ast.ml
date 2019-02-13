@@ -7,8 +7,10 @@ type arg = Arg of string * typing
 
 type expr = Boolean of bool
 		| Int of int
-		| Operation of string * (expr)list
-		| Call of (arg)list * expr
+		| BinOperation of string * expr * expr
+		| UnOperation of string * expr
+		| AnoFun of (arg)list * expr
+		| Call of expr * expr list
 		| If of expr * expr * expr
 		| Var of string
 		| Seq of expr list

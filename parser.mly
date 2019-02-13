@@ -1,5 +1,5 @@
 %{open Ast%}
-%token <string> OPRIM
+%token <string> BINOPRIM, UNOPRIM
 %token <string> TPRIM
 %token EOL, PLUS, STAR, LPAR, RPAR, LBRA, RBRA, SEMICOL, COL, COMMA, ARROW, ECHO, FUN, CONST, REC, TRUE, FALSE, IF;
 %token <int> NUM;
@@ -41,10 +41,11 @@ arg : IDENT COL typing {Arg($1, $3)}
 args : arg {$1::[]}
 	| arg COMMA args {$1::$3}
 
-expr : TRUE {Boolean(true)} | FALSE {Boolean(false)} | NUM {Int($1)} | IDENT {Var($1)}
-	| LPAR OPRIM exprs RPAR {Operation($2, $3)}
-	| LBRA args RBRA expr {Call($2, $4)}
-	| LPAR expr exprs RPAR {Seq($2::$3)}
+expr : TRUE {Boolean(true)} | FALSE {Boolean(false)} | NUM {Int($1)} | | IDENT {Var($1)}
+	| LPAR BINOPRIM expr expr RPAR {BinOperation($2, $3, $4)}
+	| LPAR UNOPRIM expr RPAR {UnOperation($2, $3)}
+	| LBRA args RBRA expr {AnoFun($2, $4)}
+	| LPAR expr exprs RPAR {Call($2,$3)}
 	| LPAR IF expr expr expr RPAR {If($3, $4, $5)}
 
 exprs : expr {$1::[]}

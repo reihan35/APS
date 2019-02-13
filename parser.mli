@@ -1,5 +1,6 @@
 type token =
-  | OPRIM of (string)
+  | BINOPRIM of (string)
+  | UNOPRIM of (string)
   | TPRIM of (string)
   | EOL
   | PLUS
