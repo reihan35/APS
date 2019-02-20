@@ -16,7 +16,7 @@ and print_type t =
 
 let print_arg a = 
 	match a with
-	|Arg(s,t) -> (print_string("arg(");print_string(s);print_string(")"))
+	|Arg(s,t) -> (print_string("arg(");print_string(s);print_string(", ");print_type(t);print_string(")"))
 
 let rec print_args l = 
 	match l with
@@ -36,10 +36,12 @@ let print_oper o =
 
 let rec print_expr e = 
 	match e with 
-		|Ast.Int x -> print_int(x)
+		|Ast.Int x -> print_string("entier(" ^ string_of_int(x) ^ ")") 
 		|Ast.Boolean x -> print_string( string_of_bool x)
-		|Ast.BinOperation(s,e, e') -> (print_string("prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))		
-		|Ast.UnOperation(s,e) -> (print_string("prim(");print_string(s);print_string(",");print_expr(e);print_string(")"))
+		|Ast.ComOperation(s,e, e') -> (print_string("com_prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))
+		|Ast.BinOperation(s,e, e') -> (print_string("bin_int_prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))
+		|Ast.BoolOperation(s,e, e') -> (print_string("bin_bool_prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))		
+		|Ast.UnOperation(s,e) -> (print_string("uni_bool_prim(");print_string(s);print_string(",");print_expr(e);print_string(")"))
 		|Ast.AnoFun(args,t) -> ( print_string("funano(");print_args(args); print_string(",");print_expr(t);print_string(")"))
 		|Ast.If (cnd,th,el) -> (print_string("ifaps(");print_expr(cnd); print_string("->");print_expr(th);print_string(";");print_expr(el);print_string(")"))
 		|Ast.Var s -> (print_string("var(");print_string(s);print_string(")"))
@@ -55,18 +57,18 @@ and print_exprs l =
 
 let print_stat s = 
 	match s with 
-	| Echo e -> (print_string("write(");print_expr(e);print_string(")"))
+	| Echo e -> (print_string("echo(");print_expr(e);print_string(")"))
 
 let print_dec d = 
 	match d with 
-	|FunDec (s, t, l, e) -> (print_string("fundec(");print_string(s);print_string(","); print_type(t); print_string(",");print_args(l);print_char(',');print_expr(e);print_string(")"))
-	|ConstDec (s, t, e) -> (print_string("constdec(");print_string(s);print_string(" :- ");print_expr(e);print_string(")"))
-	|FunRecDec (s, t, l, e) -> (print_string(s);print_args(l);print_expr(e))
+	|FunDec (s, t, l, e) -> (print_string("fun(");print_string(s);print_string(","); print_type(t); print_string(",");print_args(l);print_char(',');print_expr(e);print_string(")"))
+	|ConstDec (s, t, e) -> (print_string("const(");print_string(s);print_string(",");print_type(t);print_string(",");print_expr(e);print_string(")"))
+	|FunRecDec (s, t, l, e) -> (print_string("funrec(");print_string(s);print_args(l);print_expr(e);print_string(")"))
 
 let print_cmd c = 
 	match c with
-	|Ast.Stat s -> print_stat(s)
-	|Ast.Dec d -> print_dec(d)
+	|Ast.Stat s -> (print_string("stat(");print_stat(s); print_string(")"))
+	|Ast.Dec d -> (print_string("dec(");print_dec(d); print_string(")"))
 
 let rec print_cmds c = 
 	match c with
@@ -76,7 +78,7 @@ let rec print_cmds c =
 
 let rec print_prog p = 
 	match p with
-	|Ast.Prog(t) -> (print_string("prog(");print_cmds(t);print_string(")"))
+	|Ast.Prog(t) -> (print_string("prog([");print_cmds(t);print_string("])."))
 
 let _ = 
 	let fichier = Sys.argv.(1) in

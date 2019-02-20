@@ -1,6 +1,8 @@
 type token =
   | BINOPRIM of (string)
   | UNOPRIM of (string)
+  | BOOLOPRIM of (string)
+  | COMPARE of (string)
   | TPRIM of (string)
   | EOL
   | PLUS

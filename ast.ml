@@ -1,5 +1,5 @@
 type typing =Type of string
-			| TypeFun of typing list * typing
+		| TypeFun of typing list * typing
 
 
 type arg = Arg of string * typing
@@ -8,6 +8,8 @@ type arg = Arg of string * typing
 type expr = Boolean of bool
 		| Int of int
 		| BinOperation of string * expr * expr
+		| ComOperation of string * expr * expr
+		| BoolOperation of string * expr * expr
 		| UnOperation of string * expr
 		| AnoFun of (arg)list * expr
 		| Call of expr * expr list

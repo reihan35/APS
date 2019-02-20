@@ -1,5 +1,5 @@
 %{open Ast%}
-%token <string> BINOPRIM, UNOPRIM
+%token <string> BINOPRIM, UNOPRIM, BOOLOPRIM, COMPARE
 %token <string> TPRIM
 %token EOL, PLUS, STAR, LPAR, RPAR, LBRA, RBRA, SEMICOL, COL, COMMA, ARROW, ECHO, FUN, CONST, REC, TRUE, FALSE, IF;
 %token <int> NUM;
@@ -43,6 +43,8 @@ args : arg {$1::[]}
 
 expr : TRUE {Boolean(true)} | FALSE {Boolean(false)} | NUM {Int($1)} | | IDENT {Var($1)}
 	| LPAR BINOPRIM expr expr RPAR {BinOperation($2, $3, $4)}
+	| LPAR COMPARE expr expr RPAR {ComOperation($2, $3, $4)}
+	| LPAR BOOLOPRIM expr expr RPAR {BoolOperation($2, $3, $4)}
 	| LPAR UNOPRIM expr RPAR {UnOperation($2, $3)}
 	| LBRA args RBRA expr {AnoFun($2, $4)}
 	| LPAR expr exprs RPAR {Call($2,$3)}
