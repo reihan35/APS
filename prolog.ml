@@ -8,15 +8,15 @@ let rec print_types t =
 
 and print_type t = 
 	match t with 
-	|Type(s) -> (print_string("typage(");print_string(s);print_string(")"))
+	|Type(s) -> print_string(s)
 	|TypeFun([],l) -> print_string("Error")
-	|TypeFun(t::q,l) -> (print_string("typagefun(");print_type(t);
+	|TypeFun(t::q,l) -> (print_string("arrow(");print_type(t);
 						print_types(q);print_string(",");
 						print_type(l);print_string(")"))
 
 let print_arg a = 
 	match a with
-	|Arg(s,t) -> (print_string("arg(");print_string(s);print_string(", ");print_type(t);print_string(")"))
+	|Arg(s,t) -> (print_string("(");print_string(s);print_string(", ");print_type(t);print_string(")"))
 
 let rec print_args l = 
 	match l with
@@ -43,9 +43,9 @@ let rec print_expr e =
 		|Ast.BoolOperation(s,e, e') -> (print_string("bin_bool_prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))		
 		|Ast.UnOperation(s,e) -> (print_string("uni_bool_prim(");print_string(s);print_string(",");print_expr(e);print_string(")"))
 		|Ast.AnoFun(args,t) -> ( print_string("funano(");print_args(args); print_string(",");print_expr(t);print_string(")"))
-		|Ast.If (cnd,th,el) -> (print_string("ifaps(");print_expr(cnd); print_string("->");print_expr(th);print_string(";");print_expr(el);print_string(")"))
+		|Ast.If (cnd,th,el) -> (print_string("ifaps(");print_expr(cnd); print_string(", ");print_expr(th);print_string(",");print_expr(el);print_string(")"))
 		|Ast.Var s -> (print_string("var(");print_string(s);print_string(")"))
-		|Ast.Call (e, e') -> (print_string("call(");print_expr(e); print_string(",");print_exprs(e'); print_string(")"))
+		|Ast.Call (e, e') -> (print_string("call(");print_string("[");print_expr(e); print_string(",");print_exprs(e');print_string("]"); print_string(")"))
 		|Ast.Seq([]) -> print_string("Error")
 		|Ast.Seq(t::q) -> (print_expr(t); print_exprs(q))
 
@@ -61,9 +61,9 @@ let print_stat s =
 
 let print_dec d = 
 	match d with 
-	|FunDec (s, t, l, e) -> (print_string("fun(");print_string(s);print_string(","); print_type(t); print_string(",");print_args(l);print_char(',');print_expr(e);print_string(")"))
+	|FunDec (s, t, l, e) -> (print_string("fun(");print_string(s);print_string(","); print_type(t); print_string(",");print_string("arg([");print_args(l);print_string("]), ");print_expr(e);print_string(")"))
 	|ConstDec (s, t, e) -> (print_string("const(");print_string(s);print_string(",");print_type(t);print_string(",");print_expr(e);print_string(")"))
-	|FunRecDec (s, t, l, e) -> (print_string("funrec(");print_string(s);print_args(l);print_expr(e);print_string(")"))
+	|FunRecDec (s, t, l, e) -> (print_string("funrec(");print_string(s);print_string(",");print_type(t);print_string(", ");print_string("arg([");print_args(l);print_string("]), ");print_expr(e);print_string(")"))
 
 let print_cmd c = 
 	match c with
