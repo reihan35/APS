@@ -15,6 +15,9 @@ typeExpr([(X,T)], var(X), T).
 typeExpr([(X,T)|Z],var(X), T).
 typeExpr([(F, ARGS, RET)|Z], var(F), (ARGS, RET)).
 typeExpr([A|Z],var(X),T) :- typeExpr(Z,var(X),T).
+
+typeExpr(CTX, funano(arg(ARGS), BODY), (ARGS_TYPE, RET_TYPE)) :- typeArg(CTX, ARGS, NEW_CTX), typeExpr(NEW_CTX, BODY, RET_TYPE), tuple_to_l(ARGS, ARGS_TYPE).
+
 typeExpr(CTX,call([F|R]),TYPE_F) :- typeExpr(CTX,F,(ARGS_TYPE,TYPE_F)),type_check_args(CTX,ARGS_TYPE, R).
 
 typeArg(CTX,[(X, T)], [(X,T)|CTX]).
