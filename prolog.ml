@@ -42,7 +42,7 @@ let rec print_expr e =
 		|Ast.BinOperation(s,e, e') -> (print_string("bin_int_prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))
 		|Ast.BoolOperation(s,e, e') -> (print_string("bin_bool_prim(");print_string(s);print_string(",");print_expr(e); print_char(',');print_expr(e');print_string(")"))		
 		|Ast.UnOperation(s,e) -> (print_string("uni_bool_prim(");print_string(s);print_string(",");print_expr(e);print_string(")"))
-		|Ast.AnoFun(args,t) -> ( print_string("funano(");print_args(args); print_string(",");print_expr(t);print_string(")"))
+		|Ast.AnoFun(args,t) -> ( print_string("funano(");print_string("arg([");print_args(args); print_string("]),");print_expr(t);print_string(")"))
 		|Ast.If (cnd,th,el) -> (print_string("ifaps(");print_expr(cnd); print_string(", ");print_expr(th);print_string(",");print_expr(el);print_string(")"))
 		|Ast.Var s -> (print_string("var(");print_string(s);print_string(")"))
 		|Ast.Call (e, e') -> (print_string("call(");print_string("[");print_expr(e); print_string(",");print_exprs(e');print_string("]"); print_string(")"))
