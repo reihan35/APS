@@ -28,7 +28,7 @@ let rec print_expr e =
 	match e with 
 		|Ast.Int x -> print_string(string_of_int x ^ "\n")
 		|Ast.Boolean x -> print_string( string_of_bool x)
-		|Ast.Operation(s,l) -> (print_string(s); print_exprs(l))
+		|Ast.UnOperation(s,l) -> (print_string(s); print_exprs(l))
 		|Ast.Call(args,expr) -> (print_args(args); print_expr(expr))
 		|Ast.If(cnd,th,el) -> (print_string("if");print_expr(cnd);print_expr(th);print_expr(el))
 		|Ast.Var s -> print_string(s)
