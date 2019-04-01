@@ -1,10 +1,10 @@
-type_check_args(CTX,[],[]).
+type_check_args(_,[],[]).
 type_check_args(CTX,[TYPE_ARG],[ARG]) :- typeExpr(CTX,ARG,TYPE_ARG).
 type_check_args(CTX,[TYPE_ARG|T],[ARG|A]) :- typeExpr(CTX,ARG,TYPE_ARG), type_check_args(CTX,T,A).
 
-typeExpr(CTX, bool(true),bool).
-typeExpr(CTX, bool(false),bool).
-typeExpr(CTX, entier(X),int).
+typeExpr(_, bool(true),bool).
+typeExpr(_, bool(false),bool).
+typeExpr(_, entier(_),int).
 typeExpr(CTX, bin_bool_prim(_,X,Y),bool):- typeExpr(CTX,X,bool), typeExpr(CTX,Y,bool). 
 typeExpr(CTX, bin_int_prim(_,X,Y),int):- typeExpr(CTX,X,int), typeExpr(CTX,Y,int).
 typeExpr(CTX, uni_bool_prim(_,X),bool):- typeExpr(CTX,X,bool). 
@@ -12,9 +12,9 @@ typeExpr(CTX, com_prim(_,X,Y),bool):- typeExpr(CTX,X,int), typeExpr(CTX,Y,int).
 typeExpr(CTX, ifaps(COND, THEN, ELSE), T) :- typeExpr(CTX, COND, bool), typeExpr(CTX, THEN, T), typeExpr(CTX, ELSE, T). 
 
 typeExpr([(X,T)], var(X), T).
-typeExpr([(X,T)|Z],var(X), T).
-typeExpr([(F, ARGS, RET)|Z], var(F), (ARGS, RET)).
-typeExpr([A|Z],var(X),T) :- typeExpr(Z,var(X),T).
+typeExpr([(X,T)|_],var(X), T).
+typeExpr([(F, ARGS, RET)|_], var(F), (ARGS, RET)).
+typeExpr([_|Z],var(X),T) :- typeExpr(Z,var(X),T).
 
 typeExpr(CTX, funano(arg(ARGS), BODY), (ARGS_TYPE, RET_TYPE)) :- typeArg(CTX, ARGS, NEW_CTX), typeExpr(NEW_CTX, BODY, RET_TYPE), tuple_to_l(ARGS, ARGS_TYPE).
 
@@ -25,8 +25,8 @@ typeArg(CTX,[(X, T)|Z], [(X,T)|R]) :- typeArg(CTX, Z, R).
 typeArg(CTX, [], CTX).
 
 tuple_to_l([],[]).
-tuple_to_l([(X, T)], [T]).
-tuple_to_l([(X, T)|Z], [T|E]) :- tuple_to_l(Z,E).
+tuple_to_l([(_, T)], [T]).
+tuple_to_l([(_, T)|Z], [T|E]) :- tuple_to_l(Z,E).
 
 
 
@@ -50,11 +50,18 @@ typeCmd(CTX, dec(X), NEW_CTX):- typeDec(CTX, X, NEW_CTX).
 
 
 
-typeProg(CTX, [], void).
-typeProg(CTX, [X], void) :- typeCmd(CTX, X, NEW_CTX).
-typeProg(CTX, [X|R], void) :- typeCmd(CTX, X, NEW_CTX), typeProg(NEW_CTX, R, void).
+typeCmds(_, [], void).
+typeCmds(CTX, [X], void) :- typeCmd(CTX, X, _).
+typeCmds(CTX, [X|R], void) :- typeCmd(CTX, X, NEW_CTX), typeCmds(NEW_CTX, R, void).
 
-prog(X) :- typeProg([], X, void).
+typeProg(prog(X), void) :- typeCmds([], X, void).
+
+main_stdin :-
+	read(user_input,T),
+	typeProg(T,R),
+	print("hi"),
+	print(R),
+	nl.
 
 /*
 entier(X).

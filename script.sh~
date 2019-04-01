@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+EXIT_CODE = ./prolog $1 | swipl -s typer.pl -g main_stdin
+print(EXIT_CODE)
