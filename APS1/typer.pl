@@ -37,6 +37,11 @@ type(CTX, typage(int), int).
 type(CTX, typage(T), type(T)).
 */
 typeStat(CTX, echo(X), void) :- typeExpr(CTX, X, _).
+typeStat(CTX, set(VAR_NAME, EXPR), void) :- typeExpr(CTX, EXPR, T), typeExpr(CTX, var(VAR_NAME), T). 
+typeStat(CTX, ifstat(COND, THEN, ELSE), void) :- typeExpr(CTX, COND, bool), typeBlock(CTX, THEN, void), typeBlock(CTX, ELSE, void).
+typeStat(CTX, whilestat(COND, BODY), void) :- typeExpr(CTX, COND, bool), typeBlock(CTX, BODY, void).
+typeStat(CTX, callproc(IDENT, ARGS), void) :- typeExpr(CTX, var(IDENT), (ARGS_TYPE, void)), type_check_args(CTX, ARGS_TYPE, ARGS).
+
 
 typeDec(CTX,const(X,T,Y),[(X,T)|CTX]) :- typeExpr(CTX, Y, T).
 
@@ -44,17 +49,20 @@ typeDec(CTX,fun(FUN_IDENT,RET_TYPE,arg(ARGS),BODY), [(FUN_IDENT,ARGS_TYPE,RET_TY
 
 typeDec(CTX,funrec(FUN_IDENT,RET_TYPE,arg(ARGS),BODY), [(FUN_IDENT,ARGS_TYPE,RET_TYPE)|CTX])  :- tuple_to_l(ARGS, ARGS_TYPE), typeArg(CTX, ARGS, NEW_CTX), typeExpr([(FUN_IDENT, ARGS_TYPE, RET_TYPE)|NEW_CTX], BODY, RET_TYPE).
 
+typeDec(CTX, vardec(VARNAME, TYPE), [(VARNAME, TYPE)|CTX]).
+
+
 
 typeCmd(CTX, stat(X), void) :- typeStat(CTX, X, void).
 typeCmd(CTX, dec(X), NEW_CTX):- typeDec(CTX, X, NEW_CTX).
 
-
-
 typeCmds(_, [], void).
-typeCmds(CTX, [X], void) :- typeCmd(CTX, X, _).
+typeCmds(CTX, [X], void) :- typeCmd(CTX, X, void).
 typeCmds(CTX, [X|R], void) :- typeCmd(CTX, X, NEW_CTX), typeCmds(NEW_CTX, R, void).
 
-typeProg(prog(X), void) :- typeCmds([], X, void).
+typeBlock(CTX, block(CMDS), void) :- typeCmds(CTX, CMDS, void).
+
+typeProg(prog(X), void) :- typeBlock([], X, void).
 
 main_stdin :-
 	read(user_input,T),

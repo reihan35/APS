@@ -15,18 +15,24 @@ type expr = Boolean of bool
 		| Call of expr * expr list
 		| If of expr * expr * expr
 		| Var of string
-		| Seq of expr list
 
-type stat = Echo of expr
 
-type dec = FunDec of string * typing * (arg)list * expr
+and stat = Echo of expr
+	| SetAps of string * expr
+	| IfStat of expr * block * block
+	| While of expr * block
+	| CallProc of string * expr list
+
+and dec = FunDec of string * typing * (arg)list * expr
 		| ConstDec of string * typing * expr
 		| FunRecDec of string * typing * (arg)list * expr
-		| Var of string * typing
+		| VarDec of string * typing
+		| ProcDec of string * arg list * block
+		| ProcRecDec of string * arg list * block
 
-type cmd = Stat of stat | Dec of dec
+and cmd = Stat of stat | Dec of dec
 
-type block = Block of (cmd)list
+and block = Block of (cmd)list
 
 type prog = Prog of block
  

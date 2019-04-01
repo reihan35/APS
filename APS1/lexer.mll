@@ -8,7 +8,7 @@ let boolop = ("and"|"or")
 let unop = ("not")
 let compare = ("lt" | "eq")
 let ident = ['a'-'z''A'-'Z']['0'-'9''a'-'z''A'-'Z']*
-let typing = ("int"|"bool")
+let typing = ("int"|"bool"|"void")
 let eol = "\n"
 
 rule token = parse

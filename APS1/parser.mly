@@ -1,7 +1,7 @@
 %{open Ast%}
 %token <string> BINOPRIM, UNOPRIM, BOOLOPRIM, COMPARE
 %token <string> TPRIM
-%token EOL, PLUS, STAR, LPAR, RPAR, LBRA, RBRA, SEMICOL, COL, COMMA, ARROW, ECHO, FUN, CONST, REC, TRUE, FALSE, IF,VAR, PROC,SET, IF1, WHILE, CALL1;
+%token EOL, PLUS, STAR, LPAR, RPAR, LBRA, RBRA, SEMICOL, COL, COMMA, ARROW, ECHO, FUN, CONST, REC, TRUE, FALSE, IF,VAR, PROC, SET, IF1, WHILE, CALL1;
 %token <int> NUM;
 %token<string> IDENT;
 %type<Ast.prog> prog
@@ -26,11 +26,17 @@ cmds : stat {Ast.Stat($1)::[]}
 	| stat SEMICOL cmds {Ast.Stat($1)::$3}
 
 stat: ECHO expr {Echo($2)}
+	| SET IDENT expr {SetAps($2, $3)}
+	| IF1 expr block block {IfStat($2, $3, $4)}
+	| WHILE expr block {While($2, $3)}
+	| CALL1 IDENT exprs {CallProc($2, $3)} 
 
 dec: CONST IDENT typing expr {ConstDec($2, $3, $4)} 
 	|FUN IDENT typing LBRA args RBRA expr {FunDec($2, $3, $5, $7)}
 	|FUN REC IDENT typing LBRA args RBRA expr {FunRecDec($3, $4, $6, $8)}
-	|VAR IDENT typing {Var($2,$3)}
+	|VAR IDENT typing {VarDec($2,$3)}
+	| PROC IDENT LBRA args RBRA block {ProcDec($2, $4, $6)}
+	|PROC REC IDENT LBRA  args RBRA block {ProcRecDec($3, $5, $7)}
 
 typing : TPRIM {Type($1)}
 	|LPAR typings ARROW typing RPAR {TypeFun($2,$4)}

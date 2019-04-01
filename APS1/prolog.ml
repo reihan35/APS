@@ -46,8 +46,6 @@ let rec print_expr e =
 		|Ast.If (cnd,th,el) -> (print_string("ifaps(");print_expr(cnd); print_string(", ");print_expr(th);print_string(",");print_expr(el);print_string(")"))
 		|Ast.Var s -> (print_string("var(");print_string(s);print_string(")"))
 		|Ast.Call (e, e') -> (print_string("call(");print_string("[");print_expr(e); print_string(",");print_exprs(e');print_string("]"); print_string(")"))
-		|Ast.Seq([]) -> print_string("Error")
-		|Ast.Seq(t::q) -> (print_expr(t); print_exprs(q))
 
 and print_exprs l = 
 	match l with 
@@ -55,30 +53,43 @@ and print_exprs l =
 	|t::q -> (print_expr(t); print_exprs(q))
 
 
-let print_stat s = 
+let rec print_stat s = 
 	match s with 
 	| Echo e -> (print_string("echo(");print_expr(e);print_string(")"))
+	| SetAps (varname, value) -> (print_string("set("); print_string(varname);print_string(",");print_expr(value))
+	| IfStat (cond, thn, els) -> (print_string("ifstat(");print_expr(cond);print_string(",");print_block(thn);print_string(",");print_block(els);print_string(")"))
+	| While (cond, body) -> (print_string("whilestat(");print_expr(cond);print_string(","); print_block(body);print_string(")"))
+	| CallProc(fname, args) -> (print_string("callproc(");print_string(fname);print_string(",");print_exprs(args))
 
-let print_dec d = 
+and print_dec d = 
 	match d with 
 	|FunDec (s, t, l, e) -> (print_string("fun(");print_string(s);print_string(","); print_type(t); print_string(",");print_string("arg([");print_args(l);print_string("]), ");print_expr(e);print_string(")"))
 	|ConstDec (s, t, e) -> (print_string("const(");print_string(s);print_string(",");print_type(t);print_string(",");print_expr(e);print_string(")"))
 	|FunRecDec (s, t, l, e) -> (print_string("funrec(");print_string(s);print_string(",");print_type(t);print_string(", ");print_string("arg([");print_args(l);print_string("]), ");print_expr(e);print_string(")"))
+	|VarDec(s, t) -> (print_string("vardec(");print_string(s);print_string(",");print_type(t);print_string(")"))
+	|ProcDec(s,l,b)->(print_string("procdec(");print_string(s);print_string(",");print_string("arg(["); print_args(l);print_string("]),");print_block(b))
+	|ProcRecDec(s, l, b)->(print_string("procrecdec(");print_string(s);print_string(",");print_string("arg(["); print_args(l);print_string("]),");print_block(b))
 
-let print_cmd c = 
+and print_cmd c = 
 	match c with
 	|Ast.Stat s -> (print_string("stat(");print_stat(s); print_string(")"))
 	|Ast.Dec d -> (print_string("dec(");print_dec(d); print_string(")"))
 
-let rec print_cmds c = 
+and print_cmds c = 
 	match c with
 	|[] -> print_string("")
 	|t::[] -> print_cmd(t)
 	|t::q -> (print_cmd(t); print_string(",");print_cmds(q))
 
+and print_block b =
+	match b with
+	|Ast.Block(cmds)->(print_string("block([");print_cmds(cmds);print_string("])"))
+
+
 let rec print_prog p = 
 	match p with
-	|Ast.Prog(t) -> (print_string("prog([");print_cmds(t);print_string("])."))
+	|Ast.Prog(b) -> (print_string("prog(");print_block(b);print_string(")."))
+
 
 let _ = 
 	let fichier = Sys.argv.(1) in
