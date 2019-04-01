@@ -9,4 +9,4 @@ all :
 	ocamlc -o prolog parser.cmo lexer.cmo prolog.ml
 
 clean:
-	rm -rf a.out *.cmi *.cmo lexer.ml parser.mli parser.output prolog parser.ml
+	rm -rf a.out *.cmi *.cmo lexer.ml parser.mli parser.output prolog parser.ml eval
