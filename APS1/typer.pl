@@ -1,5 +1,4 @@
 type_check_args(_,[],[]).
-type_check_args(CTX,[TYPE_ARG],[ARG]) :- typeExpr(CTX,ARG,TYPE_ARG).
 type_check_args(CTX,[TYPE_ARG|T],[ARG|A]) :- typeExpr(CTX,ARG,TYPE_ARG), type_check_args(CTX,T,A).
 
 typeExpr(_, bool(true),bool).
@@ -9,6 +8,7 @@ typeExpr(CTX, bin_bool_prim(_,X,Y),bool):- typeExpr(CTX,X,bool), typeExpr(CTX,Y,
 typeExpr(CTX, bin_int_prim(_,X,Y),int):- typeExpr(CTX,X,int), typeExpr(CTX,Y,int).
 typeExpr(CTX, uni_bool_prim(_,X),bool):- typeExpr(CTX,X,bool). 
 typeExpr(CTX, com_prim(_,X,Y),bool):- typeExpr(CTX,X,int), typeExpr(CTX,Y,int).
+typeExpr(CTX, com_prim(_,X,Y),bool):- typeExpr(CTX,X,bool), typeExpr(CTX,Y,bool).
 typeExpr(CTX, ifaps(COND, THEN, ELSE), T) :- typeExpr(CTX, COND, bool), typeExpr(CTX, THEN, T), typeExpr(CTX, ELSE, T). 
 
 typeExpr([(X,T)], var(X), T).
@@ -51,13 +51,15 @@ typeDec(CTX,funrec(FUN_IDENT,RET_TYPE,arg(ARGS),BODY), [(FUN_IDENT,ARGS_TYPE,RET
 
 typeDec(CTX, vardec(VARNAME, TYPE), [(VARNAME, TYPE)|CTX]).
 
+typeDec(CTX, procdec(PROC_IDENT, arg(ARGS), BODY), [(PROC_IDENT, ARGS_TYPE, void)|CTX]) :- typeArg(CTX, ARGS, NEW_CTX), typeBlock(NEW_CTX, BODY, void), tuple_to_l(ARGS, ARGS_TYPE).
+
+typeDec(CTX, procrecdec(PROC_IDENT, arg(ARGS), BODY), [(PROC_IDENT, ARGS_TYPE, void)|CTX]) :-  tuple_to_l(ARGS, ARGS_TYPE),  typeArg(CTX, ARGS, NEW_CTX), typeBlock([(PROC_IDENT, ARGS_TYPE, void)|NEW_CTX], BODY, void).
 
 
-typeCmd(CTX, stat(X), void) :- typeStat(CTX, X, void).
+typeCmd(CTX, stat(X), CTX) :- typeStat(CTX, X, void).
 typeCmd(CTX, dec(X), NEW_CTX):- typeDec(CTX, X, NEW_CTX).
 
 typeCmds(_, [], void).
-typeCmds(CTX, [X], void) :- typeCmd(CTX, X, void).
 typeCmds(CTX, [X|R], void) :- typeCmd(CTX, X, NEW_CTX), typeCmds(NEW_CTX, R, void).
 
 typeBlock(CTX, block(CMDS), void) :- typeCmds(CTX, CMDS, void).
@@ -65,11 +67,11 @@ typeBlock(CTX, block(CMDS), void) :- typeCmds(CTX, CMDS, void).
 typeProg(prog(X), void) :- typeBlock([], X, void).
 
 main_stdin :-
-	read(user_input,T),
-	typeProg(T,R),
-	print("hi"),
-	print(R),
-	nl.
+    read(user_input,T),
+    typeProg(T,R) -> print(R); print("echec"),
+    nl,
+    halt(1).
+
 
 /*
 entier(X).
