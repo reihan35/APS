@@ -1,6 +1,6 @@
 type typing =Type of string
            |TypeVec of string * typing
-		| TypeFun of typing list * typing
+					 |TypeFun of typing list * typing
 
 
 type arg = Arg of string * typing

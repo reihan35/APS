@@ -7,7 +7,7 @@ all :
 	ocamlc -c parser.ml
 	#ocamlc parser.cmo lexer.cmo print.ml
 	ocamlc -o prolog parser.cmo lexer.cmo prolog.ml
-	#ocamlc -o eval ast.cmo lexer.cmo parser.cmo evaluateur.ml 
+	ocamlc -o eval ast.cmo lexer.cmo parser.cmo evaluateur.ml 
 
 
 clean:
