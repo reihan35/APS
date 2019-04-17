@@ -10,7 +10,7 @@ for exemple in $1/*; do
   if [ $? == 0 ]
   then
 	echo "Typechecking OK, starting evaluation..."
-	#./eval $exemple
+	./eval $exemple
   else
 	echo "Typechecking KO..."
   fi

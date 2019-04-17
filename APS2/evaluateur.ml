@@ -121,10 +121,10 @@ let rec change_mem i value mem =
 
 let set x value mem = 
   match x with
-  | InA(a) -> change_mem (List.length(mem) - a - 1) value mem 
+  | InA(a) -> let ret = change_mem (List.length(mem) - a - 1) value mem in ret 
   | _ -> (print_string("Can't set non variable types\n"); [])
 
-let rec allocn n mem =
+let rec allocn n mem=
   match n with
   |0 -> mem
   |_ -> InN(0)::(allocn (n-1) mem)
@@ -132,18 +132,18 @@ let rec allocn n mem =
 let nth b i mem = 
   match b with
   |InB(InA(a),n) -> let i = (List.length(mem) - a - toN(i) - 1) in (List.nth mem i , mem)
-  |_ -> (print_string("Can't access on non variables / non integer indexes");(InN(-1), mem))
+  |_ -> (print_string("\nCan't access on non variables / non integer indexes\n");(InN(-1), mem))
 
-let rec get_addr a=
-  match a with
-  | InA(a)->a
-  | InB(a,_)->get_addr a
-  |_->(print_string("Address must be InA or InB\n");-1)
+let rec get_block v mem=
+  match v with
+  | InB(a,n)->InB(a,n)
+  | InA(a)->let i = (List.length(mem) - a - 1) in List.nth mem i
+  |_->(print_string("Address must be InA or InB\n");InA(-1))
 
 let rec lnth v i mem= 
   match v with
-  |InA(a) -> (InA(a + toN(i)), mem)
-  |_ -> (print_string("Can't access on non variables / non integer indexes\n");print_v(v);(InN(-1)), mem)
+  |InB(InA(a),_) ->let res = InA(a+i) in res
+  |_ -> (print_string("Can't access on non variables / non integer indexes\n");InN(-1))
 
 let len b mem = 
   match b with 
@@ -208,8 +208,8 @@ and eval_instr instr mem ctx =
 
 and eval_lval lval mem ctx = 
   match lval with
-|Nth(l, e) -> let (i, mem) = (eval_expr e mem ctx) in let (v, mem) = (eval_lval l mem ctx) in (lnth v i mem)
-  |VarVec(s) -> let v = (rho s ctx) in (InA(get_addr(v)), mem)
+|Nth(l, e) -> let (i, mem) = (eval_expr e mem ctx) in let (v, mem) = (eval_lval l mem ctx) in let b = get_block v mem in let res = lnth b (toN i) mem in (res, mem)
+  |VarVec(s) -> let v = (rho s ctx) in ((*print_v(v);print_string("\n");print_string("\n");*)(v,mem))
 
 and eval_cmd e mem ctx = 
   match e with 
