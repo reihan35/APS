@@ -1,6 +1,10 @@
 open Ast
 open Lexer
 
+exception UninitializedValue
+exception UndeclaredVar
+exception SegmentationFault
+
 type v = InN of int
        | InF of  Ast.expr * int * (string*v) list
        | InFR of v * string
@@ -8,6 +12,7 @@ type v = InN of int
        | InP of Ast.block * int * (string*v) list
        | InPR of v * string
        | InB of v * int
+       | Unknown
 
 
 
@@ -34,6 +39,7 @@ and print_v v =
   |InP (a, b, c) -> (print_string("afficher fermeture proc : ");print_ctx(c))
   |InPR (v, name) -> (print_string(name);print_string("afficher fermeture recursive proc : ");print_v(v))
   |InB(v,n) -> (print_string("bloc;  "); print_v(v); print_string(" de taille ");print_int(n))
+  | Unknown -> print_string("uninitialized\n")
 
 let rec print_mem mem = 
   match mem with 
@@ -42,7 +48,7 @@ let rec print_mem mem =
 
 let rec rho s env = 
   match env with 
-  |[] -> (print_string("la variable n'est pas dans l'environnement");InN(-1)) (*L'element n'existe pas dans le contexte*)
+  |[] -> raise UndeclaredVar (*L'element n'existe pas dans le contexte*)
   |(e,v)::q when e=s -> v	
   |_::q -> rho s q
 
@@ -51,6 +57,7 @@ let rec rho s env =
 let toN v = 
   match v with
   |InN n -> n
+  |Unknown -> raise UninitializedValue
   |_-> -1
 
 
@@ -106,11 +113,12 @@ let rec get_var_value adr mem =
   match (adr,mem) with
   |(0, t::q) -> t
   |(i, t::q) -> get_var_value (i-1) q
-  |_->(print_string("Non existing variable\n");(InN(-1)))
+  |_->raise SegmentationFault
 
+          
 let get_v v mem = 
   match v with
-  |InA(adr)-> get_var_value ((List.length mem) - adr -1) mem
+  |InA(adr)-> List.nth mem ((List.length mem) - adr -1)
   |_->v
 
 let rec change_mem i value mem = 
@@ -127,7 +135,7 @@ let set x value mem =
 let rec allocn n mem=
   match n with
   |0 -> mem
-  |_ -> InN(0)::(allocn (n-1) mem)
+  |_ -> Unknown::(allocn (n-1) mem)
 
 let nth b i mem = 
   match b with
@@ -156,7 +164,7 @@ let rec eval_expr e mem ctx =
   |Ast.Boolean true -> (InN(1),mem)
   |Ast.Boolean false -> (InN(0),mem)
   |Ast.Var s -> let v = rho s ctx in (get_v v mem, mem)
-  |Ast.Prim (op,exprs) -> (let (v,mem)  = (pi (Prim(op, exprs)) mem ctx) in (v,mem))
+  |Ast.Prim (op,exprs) -> let (v,mem)  = (pi (Prim(op, exprs)) mem ctx) in (v,mem)
   |Ast.If (cnd, thn, el) when let (v,mem) = (eval_expr cnd mem ctx) in (toN(v) == 1) -> (eval_expr thn mem ctx)
   |Ast.If (cnd, thn, el) -> (eval_expr el mem ctx)
   |Ast.Call(fct, args)->let (args,mem) = (eval_exprs args mem ctx) in let (f,mem) = (eval_expr fct mem ctx) in let new_ctx = (extend_ctx f args []) in eval_expr (get_body f) mem new_ctx
@@ -169,7 +177,8 @@ and eval_exprs e mem ctx =
   |_-> (print_string("must evaluate at least one expr\n"); ((InN(-1))::[], mem))
 
 
-and pi prim mem ctx = 
+and pi prim mem ctx =
+  
   match prim with 
   |Prim("add", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in let (right, mem) = (eval_expr e2 mem ctx) in (InN((toN left) + (toN right)), mem)
   |Prim("sub", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in let (right, mem) = (eval_expr e2 mem ctx) in (InN((toN left) - (toN right)),mem)
@@ -177,7 +186,7 @@ and pi prim mem ctx =
   |Prim("mul", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in let (right, mem) = (eval_expr e2 mem ctx) in (InN((toN left) * (toN right)), mem)
   |Prim("and", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in if ((toN left) == 0) then (InN(0), mem) else let (right, mem) = (eval_expr e2 mem ctx) in (InN((toN right)), mem)
   |Prim("or", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in if ((toN left) == 1) then (InN(1), mem) else let (right, mem) = (eval_expr e2 mem ctx) in (InN(toN right), mem)
-  |Prim("eq", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in let (right, mem) = (eval_expr e2 mem ctx) in if ((toN left) == (toN right)) then (InN(1), mem) else (InN(0), mem)
+  |Prim("eq", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in let (right, mem) = (eval_expr e2 mem ctx) in if ((toN left) == (toN right)) then (InN(1), mem) else (print_v(left);(InN(0), mem))
   |Prim("lt", e1::e2::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in let (right, mem) = (eval_expr e2 mem ctx) in if ((toN left) < (toN right)) then (InN(1), mem) else (InN(0), mem)
   |Prim("not", e1::[]) -> let (left, mem) = (eval_expr e1 mem ctx) in (InN(((toN left) + 1) mod 2), mem)
   |Prim("alloc", e1::[]) -> let (v, mem) = (eval_expr e1 mem ctx) in (InB(InA(List.length(mem)), (toN v)), (allocn (toN v) mem))
@@ -190,7 +199,7 @@ let rec eval_dec dec mem ctx =
   |ConstDec (name, typeret, value) -> (let (v,mem) = (eval_expr value mem ctx) in (mem,((name, v)::ctx)))
   |FunDec (name, typeret, typeargs, body) -> (mem, ((name, (InF(body, (List.length typeargs), (List.append(make_closure typeargs) ctx))))::ctx))
   |FunRecDec (name, typeret, typeargs, body) -> (mem, (name, InFR((InF(body, (List.length typeargs), (List.append(make_closure typeargs) ctx))), name))::ctx)
-  |VarDec (name,typage) -> ((InN(0))::mem, (name,(InA(List.length(mem))))::ctx)
+  |VarDec (name,typage) -> (Unknown::mem, (name,(InA(List.length(mem))))::ctx)
   |ProcDec(name, typeargs, body) -> (mem, (name, (InP(body, (List.length typeargs), (List.append(make_closure typeargs) ctx))))::ctx)
   |ProcRecDec(name,typeargs,body) ->(mem, (name, InPR((InP(body, (List.length typeargs), (List.append(make_closure typeargs) ctx))), name))::ctx)
 
